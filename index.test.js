@@ -20,6 +20,43 @@ describe("./musicians endpoint", () => {
     expect(responseMusician.statusCode).toBe(200);
     expect(responseData[2].instrument).toEqual("Guitar");
   });
+
+  test("post a new musician", async () => {
+    const responseMusician = await request(app)
+    .post("/musicians")
+    .send({ name: "Ted Nugent", instrument: "Guitar"} )
+    expect(responseMusician.status).toBe(201)
+    expect(responseMusician.body.name).toBe("Ted Nugent")
+  })
+
+  test("replacing a musician with a new musician", async () => {
+    //create a instance of musician
+    const created = await request(app)
+    .post("/musicians")
+    .send({ name: "Ted Nugent", instrument: "Guitar"} )
+    const id = created.body.id
+    // update the instance
+    const responseMusician = await request(app)
+    .put("/musicians/1")
+    .send({ name: "Anthony Kedis", instrument: "Voice"} )
+    // test the expectations
+    expect(responseMusician.status).toBe(200)
+    expect(responseMusician.body.name).toBe("Anthony Kedis")
+  })
+
+    test("deleting a musician", async () => {
+    //create a instance of musician
+    const created = await request(app)
+    .post("/musicians")
+    .send({ name: "Ted Nugent", instrument: "Guitar"} )
+    const id = created.body.id
+    // delete the instance
+    const deletedMusician = await request(app)
+    .delete("/musicians/1")
+    // test the expectations
+    expect(deletedMusician.status).toBe(200)
+  })
+
 });
 
 describe("./bands endpoint", () => {

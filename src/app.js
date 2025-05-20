@@ -52,7 +52,7 @@ app.post("/musicians", async (req, res, next) => {
 
   try{
     const newMusician = await Musician.create(req.body)
-  res.json(newMusician)
+  res.status(201).json(newMusician)
   } catch (error) {
     next(error)
   }
