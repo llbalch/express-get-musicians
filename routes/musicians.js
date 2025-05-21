@@ -1,7 +1,7 @@
 // D3 - Step 3 - Define Express router
 const express = require("express");
 const musicianRouter = express.Router();
-const Musician = require("../models/index")
+const { Musician } = require("../models/index")
 
 // D3 - Step 3 - Enable Express router to handle CRUD operations
 // adding a new musician to the array

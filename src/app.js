@@ -9,7 +9,7 @@ const { Band } = require("../models/index")
 
 const port = 3000;
 
-// Call app.use() to payy in express.json() and express.urlencoded()
+// Call app.use() to pass in express.json() and express.urlencoded()
 app.use(express.json())
 app.use(express.urlencoded())
 // D3 Step 6- Use the express router (in main server?? or is it ok here?)
