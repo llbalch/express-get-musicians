@@ -6,90 +6,125 @@ execSync("npm run seed");
 // const request = require("supertest");
 // const { db } = require("./db/connection");
 const { Musician } = require("./models/index");
+// D4 - Step 10 Part 1 - import in supertest and app
+const request = require("supertest");
+const app = require("./src/app");
 
 // D3 - Step 9 - Create unit tests to test the functionality of the Express router(s)
-jest.mock("./models/Musician.js", () => ({
-  create: jest.fn(),
-  findOne: jest.fn(), // mock findOne for delete endpoint
-}))
+jest.mock("./models/index.js", () => ({
+  Musician: {
+    create: jest.fn(),
+    findOne: jest.fn(), // mock findOne for delete endpoint
+    findAll: jest.fn(),
+  },
+}));
 
 describe("CRUD tests for musician express router", () => {
+  beforeAll(() => {
+    jest.clearAllMocks();
+  });
 
-  beforeAll( () => {
-    jest.clearAllMocks()
-  })
-})
 // POST TEST
-  test("post a new musician", async () => {
-    // prepare the musician data
-    const newMusician = {
-      name: "Bob Marley",
-      instrument: "Voice"
-    }
-    // mock the database
-    Musician.create.mockResolvedValue({...newMusician, id: 1})
+test("post a new musician", async () => {
+  // prepare the musician data
+  const newMusician = {
+    name: "Bob Marley",
+    instrument: "Voice",
+  };
+  const createdMusician = { id: 1, ...newMusician}
+  const allMusicians = [createdMusician]
+  Musician.create.mockResolvedValue(createdMusician)
+  // mock the array
+  Musician.findAll.mockResolvedValue(allMusicians);
 
-    // send the request
-    const response = await request(app)
+  // send the request
+  const response = await request(app).post("/musicians").send(newMusician);
+
+  // confirm the response is correct
+  expect(response.statusCode).toEqual(201);
+  expect(Array.isArray(response.body)).toBe(true);
+  expect(response.body).toEqual(expect.arrayContaining([expect.objectContaining(newMusician)]));
+
+  // make sure the database is called correctly
+  expect(Musician.create).toHaveBeenCalledWith(newMusician);
+  expect(Musician.create).toHaveBeenCalledTimes(1);
+  expect(Musician.findAll).toHaveBeenCalled()
+});
+
+// test error message
+test("error posting musician", async () => {
+  Musician.create.mockRejectedValue(new Error("Musician creation failed"));
+  const response = await request(app)
+  // in order to get status 500 you will need to send data so validation
+  // will fail
+  .post("/musicians")
+  .send({ name: "test", instrument: "Violin" })
+  expect(response.statusCode).toEqual(500);
+});
+
+// D4 - Step 10 Part 2 - create unit tests that test that returns an errors array
+test("returns errors array if name is empty", async () => {
+  const response = await request(app)
     .post("/musicians")
-    .send(newMusician)
+    .send({ name: "", instrument: "Guitar" });
 
-    // confirm the response is correct
-    expect(response.statusCode).toEqual(201)
-    expect(response.body.name).toEqual("Bob Marley")
-    expect(response.body).toEqual(expect.objectContaining(newMusician))
-  
-    // make sure the database is called correctly
-    expect(Musician.create).toHaveBeenCalledWith(newMusician)
-    expect(Musician.create).toHaveBeenCalledTimes(1)
+  expect(response.body.errors).toBeInstanceOf(Array);
+  expect(response.body.length).toBeGreaterThan(0);
+});
 
-  })
-
-  // test error message
-  test("error posting musician", async () => {
-    Musician.create.mockRejectedValue(new Error("Musician creation failed"))
-    const response = await request(app)
+test("returns errors array if instrument is empty", async () => {
+  const response = await request(app)
     .post("/musicians")
-    expect(response.statusCode).toEqual(500)
-    })
-  
+    .send({ name: "Test", instrument: "" });
+
+  expect(response.body.errors).toBeInstanceOf(Array);
+  expect(response.body.length).toBeGreaterThan(0);
+});
+
+test("returns errors array if both fields are empty", async () => {
+  const response = await request(app)
+    .post("/musicians")
+    .send({ name: "", instrument: "" });
+
+  expect(response.body.errors).toBeInstanceOf(Array);
+  expect(response.body.length).toBeGreaterThan(0);
+});
+
 // DELETE TEST
 test("delete a musician", async () => {
- // create a new user to find using mock findOne
+  // create a new user to find using mock findOne
   const newMusician = {
-  name: "Tina Turner",
-  instrument: "Voice",
-  id: 1,
-  destroy: jest.fn()
-  }
+    name: "Tina Turner",
+    instrument: "Voice",
+    id: 1,
+    destroy: jest.fn(),
+  };
   // find the new user
-  Musician.findOne.mockResolvedValue(newMusician)
+  Musician.findOne.mockResolvedValue(newMusician);
 
   // mock the user instance destroy method
-  newMusician.destroy.mockResolvedValue(newMusician)
+  newMusician.destroy.mockResolvedValue(newMusician);
 
   // send the delete request
-  const response = await request(app)
-  .delete(`/musicians/${newMusician.id}`)
+  const response = await request(app).delete(`/musicians/${newMusician.id}`);
 
   // check the response
-  expect(response.statusCode).toEqual(200)
-  expect(response.body.message).toEqual("Musician deleted")
+  expect(response.statusCode).toEqual(200);
+  expect(response.body.message).toEqual("Musician deleted");
 
   // check the calls to User.findOne
-  expect(Musician.findOne).toHaveBeenCalledTimes(1)
+  expect(Musician.findOne).toHaveBeenCalledTimes(1);
   expect(Musician.findOne).toHaveBeenCalledWith({
     where: {
-      id: newMusician.id
-    }
-  })
+      id: newMusician.id,
+    },
+  });
 
   // check the calls to user.destroy
-  expect(newMusician.destroy).toHaveBeenCalledTimes(1)
-  expect(newMusician.destroy).toHaveBeenCalledWith()
-})
-  
-
+  expect(newMusician.destroy).toHaveBeenCalledTimes(1);
+  expect(newMusician.destroy).toHaveBeenCalledWith();
+});
+});
 // const app = require("./src/app");
 // const { seedMusician } = require("./seedData");
 
