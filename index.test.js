@@ -68,8 +68,8 @@ test("returns errors array if name is empty", async () => {
     .post("/musicians")
     .send({ name: "", instrument: "Guitar" });
 
-  expect(response.body.errors).toBeInstanceOf(Array);
-  expect(response.body.length).toBeGreaterThan(0);
+  expect(response.body.error).toBeInstanceOf(Array);
+  expect(response.body.error.length).toBeGreaterThan(0);
 });
 
 test("returns errors array if instrument is empty", async () => {
@@ -77,8 +77,8 @@ test("returns errors array if instrument is empty", async () => {
     .post("/musicians")
     .send({ name: "Test", instrument: "" });
 
-  expect(response.body.errors).toBeInstanceOf(Array);
-  expect(response.body.length).toBeGreaterThan(0);
+  expect(response.body.error).toBeInstanceOf(Array);
+  expect(response.body.error.length).toBeGreaterThan(0);
 });
 
 test("returns errors array if both fields are empty", async () => {
@@ -86,8 +86,8 @@ test("returns errors array if both fields are empty", async () => {
     .post("/musicians")
     .send({ name: "", instrument: "" });
 
-  expect(response.body.errors).toBeInstanceOf(Array);
-  expect(response.body.length).toBeGreaterThan(0);
+  expect(response.body.error).toBeInstanceOf(Array);
+  expect(response.body.error.length).toBeGreaterThan(0);
 });
 
 // DELETE TEST
@@ -116,7 +116,7 @@ test("delete a musician", async () => {
   expect(Musician.findOne).toHaveBeenCalledTimes(1);
   expect(Musician.findOne).toHaveBeenCalledWith({
     where: {
-      id: newMusician.id,
+      id: String(newMusician.id),
     },
   });
 
