@@ -1,6 +1,6 @@
 const { Sequelize, db } = require('../db/connection');
 
-let Musician = db.define('musician', {
+const Musician = db.define('Musician', {
     name: Sequelize.STRING,
     instrument : Sequelize.STRING
 });

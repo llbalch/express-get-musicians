@@ -54,8 +54,39 @@ describe("CRUD tests for musician express router", () => {
     })
   
 // DELETE TEST
-test("delete a user", async () => {
-  
+test("delete a musician", async () => {
+ // create a new user to find using mock findOne
+  const newMusician = {
+  name: "Tina Turner",
+  instrument: "Voice",
+  id: 1,
+  destroy: jest.fn()
+  }
+  // find the new user
+  Musician.findOne.mockResolvedValue(newMusician)
+
+  // mock the user instance destroy method
+  newMusician.destroy.mockResolvedValue(newMusician)
+
+  // send the delete request
+  const response = await request(app)
+  .delete(`/musicians/${newMusician.id}`)
+
+  // check the response
+  expect(response.statusCode).toEqual(200)
+  expect(response.body.message).toEqual("Musician deleted")
+
+  // check the calls to User.findOne
+  expect(Musician.findOne).toHaveBeenCalledTimes(1)
+  expect(Musician.findOne).toHaveBeenCalledWith({
+    where: {
+      id: newMusician.id
+    }
+  })
+
+  // check the calls to user.destroy
+  expect(newMusician.destroy).toHaveBeenCalledTimes(1)
+  expect(newMusician.destroy).toHaveBeenCalledWith()
 })
   
 

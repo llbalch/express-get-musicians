@@ -2,17 +2,33 @@
 const express = require("express");
 const musicianRouter = express.Router();
 const { Musician } = require("../models/index")
+// D4 - Step 2 - Include check and validation methods from the Express Validator pkg
+const { check, validationResult } = require("express-validator")
 
 // D3 - Step 3 - Enable Express router to handle CRUD operations
 // adding a new musician to the array
-musicianRouter.post("/", async (req, res) => {
-  try{
-    const newMusician = await Musician.create(req.body)
-    res.status(201).json(newMusician)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+    // D4 - Steps 3 thru 8
+musicianRouter.post(
+  "/",
+  [
+    check("name").not().isEmpty().trim(),
+    check("instrument").not().isEmpty().trim(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.json({ error: errors.array() });
+    } else {
+      try {
+        const newMusician = await Musician.create(req.body);
+        const allMusicians = await Musician.findAll()
+        res.status(201).json(allMusicians);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    }
   }
-});
+);
 
 // returns all musicians in the array
 musicianRouter.get("/", async (req, res) => {
